@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>NSFW Prompt Studio — 男同/女同二次元提示词工坊</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💜</text></svg>">
+<script>
+/* 主题预加载：localStorage 用户选择 > URL ?theme 参数 > 深色。防首屏闪烁 */
+(function () {
+  try {
+    var saved = null; try { saved = localStorage.getItem('nps_theme'); } catch (e) {}
+    var param = null;
+    try { param = new URLSearchParams(location.search).get('theme'); } catch (e) {}
+    var t = (saved && saved !== 'auto') ? saved : (param || 'dark');
+    document.documentElement.setAttribute('data-theme', t);
+    if (t === 'lightblue') {
+      var l = document.createElement('link');
+      l.rel = 'stylesheet'; l.href = 'lightblue.css'; l.id = 'themeCss';
+      document.head.appendChild(l);
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body data-mode="gay">
+
+<!-- ============ 18+ 年龄确认遮罩 ============ -->
+<div id="ageGate" class="age-gate">
+  <div class="age-gate-card">
+    <div class="age-gate-icon">🔞</div>
+    <h1>NSFW Prompt Studio</h1>
+    <p class="age-gate-sub">男同 · 女同 · 二次元 提示词工坊</p>
+    <div class="age-gate-notice">
+      <p>本网站包含<b>成人向（NSFW）</b>提示词内容，仅供 <b>18 岁及以上成年人</b> 使用。</p>
+      <p>本站所有标签均以<b>成年角色</b>为前提，请勿用于生成任何涉及未成年人的内容。</p>
+      <p>请遵守你所在国家 / 地区的法律法规，并对生成的内容负责。</p>
+    </div>
+    <div class="age-gate-btns">
+      <button class="btn btn-primary" id="ageConfirm">我已满 18 岁，进入</button>
+      <button class="btn btn-ghost" id="ageDeny">未满 18 岁，退出</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 顶部 ============ -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-logo">💜</span>
+      <div>
+        <h1>NSFW Prompt Studio</h1>
+        <p class="brand-sub">二次元 · 男同 / 女同 提示词工坊</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="theme-btn" id="btnTheme" title="切换深浅主题">🌙 深色</button>
+      <div class="mode-switch" role="tablist" aria-label="模式切换">
+        <button class="mode-btn" data-mode="gay" role="tab" aria-selected="true">🧑‍❤️‍💋‍🧑 男同 (Yaoi)</button>
+        <button class="mode-btn" data-mode="lesbian" role="tab" aria-selected="false">👩‍❤️‍💋‍👩 女同 (Yuri)</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ 主体 ============ -->
+<main class="layout">
+
+  <!-- 左栏：标签库 / 角色库 -->
+  <aside class="panel tag-panel">
+    <div class="panel-switch">
+      <button class="pbtn active" id="pbtnTags">🏷️ 标签库</button>
+      <button class="pbtn" id="pbtnChars">🎌 角色库</button>
+    </div>
+
+    <!-- 标签库面板 -->
+    <div id="tagPanel">
+      <div class="panel-head">
+        <h2>标签库</h2>
+        <input type="text" id="tagSearch" class="search" placeholder="🔍 搜索标签… (如 blowjob / 温泉 / 肌肉)">
+      </div>
+      <div id="tagCategories" class="tag-cats"><!-- 动态渲染 --></div>
+    </div>
+
+    <!-- 角色库面板 -->
+    <div id="charPanel" class="hidden">
+      <div class="panel-head">
+        <h2>动漫角色库</h2>
+        <div class="char-areas">
+          <button class="area-btn active" id="areaJp">🇯🇵 日本动漫</button>
+          <button class="area-btn" id="areaCn">🇨🇳 中国动漫</button>
+        </div>
+      </div>
+      <div class="char-tools">
+        <input type="text" id="charSearch" class="search" placeholder="🔍 搜动漫/角色… (如 刀剑 / kirito / 魔道)">
+        <button class="btn btn-sm" id="btnRandomChar" title="随机挑一部动漫的当前性别角色">🎲 随机角色</button>
+      </div>
+      <p class="char-hint" id="charStats"></p>
+      <div id="charList" class="char-list"><!-- 动态渲染 --></div>
+    </div>
+  </aside>
+
+  <!-- 中栏：构建区 -->
+  <section class="panel builder">
+    <div class="panel-head builder-tools">
+      <h2>提示词构建</h2>
+      <div class="tool-group">
+        <label class="intensity" title="目标模型：决定质量词/专属标签/负面词/参数建议">
+          模型
+          <select id="modelSelect"></select>
+        </label>
+        <label class="intensity" title="随机生成时使用的露骨程度">
+          强度
+          <select id="intensity">
+            <option value="1">轻 (轻度向)</option>
+            <option value="2" selected>中 (中度向)</option>
+            <option value="3">重 (重度向)</option>
+          </select>
+        </label>
+        <button class="btn btn-primary" id="btnRandom">🎲 随机生成</button>
+        <button class="btn btn-ghost" id="btnShuffle">🔀 打乱顺序</button>
+        <button class="btn btn-danger" id="btnClear">🗑 清空</button>
+      </div>
+    </div>
+
+    <p class="model-desc" id="modelDesc"></p>
+
+    <!-- 模板 -->
+    <div class="templates-row">
+      <span class="templates-label">场景模板：</span>
+      <div id="templates" class="templates"><!-- 动态渲染 --></div>
+    </div>
+
+    <!-- 已选标签 chips -->
+    <div id="chipArea" class="chip-area" data-empty="点击左侧标签或使用随机生成，把标签加到这里">
+    </div>
+
+    <!-- 输出 -->
+    <div class="output-block">
+      <div class="output-head">
+        <h3>正向提示词</h3>
+        <div class="output-actions">
+          <button class="btn btn-sm" id="btnCopyPos">📋 复制</button>
+          <span id="posCount" class="count">0 词</span>
+        </div>
+      </div>
+      <textarea id="posOutput" class="output" readonly spellcheck="false" placeholder="提示词将在这里显示…"></textarea>
+    </div>
+
+    <div class="output-block">
+      <div class="output-head">
+        <h3>负面提示词</h3>
+        <div class="output-actions">
+          <button class="btn btn-sm" id="btnCopyNeg">📋 复制</button>
+          <button class="btn btn-sm btn-ghost" id="btnResetNeg" title="恢复默认负面词">↺ 默认</button>
+        </div>
+      </div>
+      <textarea id="negOutput" class="output neg" spellcheck="false"></textarea>
+    </div>
+
+    <!-- 生成参数 -->
+    <div class="params-block">
+      <h3>生成参数（可整行复制）</h3>
+      <div class="params-grid">
+        <label>Sampler
+          <select id="pSampler">
+            <option>Euler a</option><option>Euler</option><option>DPM++ 2M</option>
+            <option>DPM++ 2M Karras</option><option>DDIM</option><option>UniPC</option>
+          </select>
+        </label>
+        <label>Steps
+          <select id="pSteps"><option>20</option><option selected>28</option><option>35</option><option>50</option></select>
+        </label>
+        <label>CFG
+          <select id="pCfg"><option>5</option><option selected>7</option><option>9</option><option>11</option></select>
+        </label>
+        <label>尺寸
+          <select id="pSize">
+            <option>512x768</option><option selected>832x1216</option>
+            <option>1024x1536</option><option>1216x832</option><option>768x512</option>
+          </select>
+        </label>
+        <label>Clip Skip
+          <select id="pClip"><option>1</option><option selected>2</option></select>
+        </label>
+      </div>
+      <button class="btn btn-sm" id="btnCopyParams">📋 复制参数行</button>
+      <span class="params-note" id="paramsAdvice"></span>
+      <span class="params-note">(tag:1.2) 为 SD / NovelAI 通用强调语法</span>
+    </div>
+  </section>
+
+  <!-- 右栏：收藏 / 历史 -->
+  <aside class="panel side-panel">
+    <div class="tabs">
+      <button class="tab active" data-tab="fav">⭐ 收藏</button>
+      <button class="tab" data-tab="hist">🕘 历史</button>
+    </div>
+    <div class="tab-body">
+      <div id="tabFav" class="tab-content active">
+        <button class="btn btn-sm btn-ghost" id="btnSaveFav" style="width:100%">💾 收藏当前提示词</button>
+        <ul id="favList" class="save-list"></ul>
+      </div>
+      <div id="tabHist" class="tab-content">
+        <button class="btn btn-sm btn-ghost" id="btnClearHist" style="width:100%">🗑 清空历史</button>
+        <ul id="histList" class="save-list"></ul>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="footer">
+  <p>🔞 本工具仅面向 <b>18 岁以上成年人</b>，所有标签均以成年角色为前提，请勿用于非法用途，并遵守当地法律。</p>
+  <p>提示词仅供 AI 绘图工具（Stable Diffusion / NovelAI 等）使用；生成内容的版权与合规责任由使用者自行承担。</p>
+</footer>
+
+<div id="whaleLayer" aria-hidden="true">
+  <span class="whale w1">🐳</span>
+  <span class="whale w2">🐋</span>
+  <span class="whale w3">🐳</span>
+  <span class="whale w4">🐋</span>
+  <span class="bubble b1">🫧</span>
+  <span class="bubble b2">🫧</span>
+  <span class="bubble b3">🫧</span>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="tags.js"></script>
+<script src="anime.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

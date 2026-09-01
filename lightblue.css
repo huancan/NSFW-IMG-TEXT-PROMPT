@@ -1,0 +1,125 @@
+/* ================================================================
+ * 淡蓝色主题（浅色）
+ * 通过 body[data-theme="lightblue"] 覆盖 style.css 的深色变量
+ * ================================================================ */
+body[data-theme="lightblue"] {
+  --bg: #e8f3fb;
+  --bg2: #d9eaf8;
+  --panel: #f5faff;
+  --panel2: #e4f0fa;
+  --border: #b9d3ea;
+  --text: #16334f;
+  --text2: #5a7692;
+  --accent: #2f8fe0;
+  --accent-soft: rgba(47, 143, 224, .14);
+  --shadow: 0 8px 24px rgba(47, 110, 170, .14);
+}
+
+body[data-theme="lightblue"][data-mode="gay"] {
+  --accent: #2f8fe0;
+  --accent-soft: rgba(47, 143, 224, .13);
+}
+
+body[data-theme="lightblue"][data-mode="lesbian"] {
+  --accent: #e0559b;
+  --accent-soft: rgba(224, 85, 155, .13);
+}
+
+/* 背景渐变换为浅色 */
+body[data-theme="lightblue"] {
+  background:
+    radial-gradient(1200px 500px at 15% -10%, var(--accent-soft), transparent 60%),
+    radial-gradient(900px 500px at 90% 110%, rgba(224, 85, 155, .07), transparent 60%),
+    var(--bg);
+}
+
+/* 年龄确认 */
+body[data-theme="lightblue"] .age-gate {
+  background: rgba(232, 243, 251, .94);
+}
+body[data-theme="lightblue"] .age-gate-card {
+  background: var(--panel);
+  border-color: var(--border);
+}
+body[data-theme="lightblue"] .age-gate-notice {
+  background: var(--bg);
+  border-color: var(--border);
+}
+body[data-theme="lightblue"] .age-gate-notice b { color: var(--text); }
+
+/* 顶栏 */
+body[data-theme="lightblue"] .topbar {
+  background: rgba(245, 250, 255, .88);
+  border-bottom-color: var(--border);
+}
+body[data-theme="lightblue"] .mode-switch { background: var(--bg2); border-color: var(--border); }
+
+/* 通用控件 */
+body[data-theme="lightblue"] .search,
+body[data-theme="lightblue"] .output,
+body[data-theme="lightblue"] .chip-area,
+body[data-theme="lightblue"] .save-list li {
+  background: var(--bg2);
+  border-color: var(--border);
+}
+body[data-theme="lightblue"] .search:focus,
+body[data-theme="lightblue"] .output:focus { border-color: var(--accent); }
+
+body[data-theme="lightblue"] .cat-head { background: var(--bg2); }
+body[data-theme="lightblue"] .cat-head:hover { background: var(--panel2); }
+body[data-theme="lightblue"] .tag-cats::-webkit-scrollbar-thumb,
+body[data-theme="lightblue"] .save-list::-webkit-scrollbar-thumb { background: var(--border); }
+
+/* 标签 chip */
+body[data-theme="lightblue"] .tag-chip {
+  background: var(--panel2);
+  border-color: var(--border);
+  color: var(--text2);
+}
+body[data-theme="lightblue"] .tag-chip:hover { border-color: var(--accent); color: var(--accent); }
+body[data-theme="lightblue"] .tag-chip.nsfw-2 {
+  border-color: rgba(224, 85, 155, .45);
+  color: #c24a8a;
+  background: rgba(224, 85, 155, .08);
+}
+body[data-theme="lightblue"] .tag-chip.nsfw-3 {
+  border-color: rgba(239, 83, 80, .5);
+  color: #d24340;
+  background: rgba(239, 83, 80, .08);
+}
+body[data-theme="lightblue"] .tag-chip.sel {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* 已选 chip */
+body[data-theme="lightblue"] .sel-chip {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--text);
+}
+body[data-theme="lightblue"] .sel-chip .w { color: #b0770a; }
+body[data-theme="lightblue"] .sel-chip button { color: var(--text2); }
+body[data-theme="lightblue"] .sel-chip button:hover { background: var(--accent); color: #fff; }
+body[data-theme="lightblue"] .sel-chip .rm:hover { background: var(--danger); }
+
+/* 负面词 / 按钮 / 其他 */
+body[data-theme="lightblue"] .output.neg { color: #7a5c63; }
+body[data-theme="lightblue"] .btn { background: var(--panel2); border-color: var(--border); color: var(--text); }
+body[data-theme="lightblue"] .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+body[data-theme="lightblue"] .btn-danger { color: #c0392b; }
+body[data-theme="lightblue"] .btn-ghost { background: transparent; }
+body[data-theme="lightblue"] .tpl-btn { color: var(--text2); border-color: var(--border); }
+body[data-theme="lightblue"] .tpl-btn:hover { border-color: var(--accent); color: var(--accent); }
+body[data-theme="lightblue"] .tabs { background: var(--bg2); border-color: var(--border); }
+body[data-theme="lightblue"] .tab { color: var(--text2); }
+body[data-theme="lightblue"] .tab.active { background: var(--accent); color: #fff; }
+body[data-theme="lightblue"] .intensity select,
+body[data-theme="lightblue"] .params-grid select {
+  background: var(--bg2); color: var(--text); border-color: var(--border);
+}
+body[data-theme="lightblue"] .footer { color: var(--text2); border-top-color: var(--border); }
+body[data-theme="lightblue"] .toast { background: var(--panel); border-color: var(--accent); color: var(--text); }
+body[data-theme="lightblue"] .params-block { border-top-color: var(--border); }
+body[data-theme="lightblue"] .empty-tip { color: var(--text2); }
