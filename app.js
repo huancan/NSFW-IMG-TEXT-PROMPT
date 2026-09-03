@@ -27,8 +27,10 @@ const state = {
   favs: LS.get('nps_favs', []),
   hist: LS.get('nps_hist', []),
   collapsed: new Set(),
+  negSelected: LS.get('nps_neg_sel', []),
+  negSearch: '',
   // 角色库状态
-  panel: 'tags',      // tags | chars
+  panel: 'tags',      // tags | chars | neg
   area: 'jp',         // jp | cn
   charSearch: '',
   expandedAnime: new Set(),
@@ -76,6 +78,7 @@ function saveState() {
   LS.set('nps_selected', state.selected);
   LS.set('nps_favs', state.favs);
   LS.set('nps_hist', state.hist);
+  LS.set('nps_neg_sel', state.negSelected);
 }
 
 /* ---------- Toast ---------- */
@@ -175,6 +178,59 @@ function renderTemplates() {
     `<button class="tpl-btn" data-tpl="${escapeHtml(t.name)}">${escapeHtml(t.name)}</button>`).join('');
 }
 
+/* ---------- 渲染：负面词标签库 ---------- */
+let negSearchText = '';
+function renderNegCategories() {
+  const wrap = $('#negCategories');
+  const q = negSearchText.trim().toLowerCase();
+  const cats = negativeCategories(state.mode);
+  let html = '';
+  for (const cat of cats) {
+    let list = cat.tags;
+    if (q) list = list.filter(x => x.t.toLowerCase().includes(q) || (x.zh && x.zh.includes(q)));
+    if (!list.length && !q) continue;
+    const nkey = 'neg_' + cat.key;
+    const open = state.collapsed.has(nkey) ? '' : 'open';
+    const chips = list.map(x => {
+      const sel = state.negSelected.includes(x.t) ? ' sel' : '';
+      const tip = x.zh || '';
+      return `<button class="tag-chip neg-chip${sel}" data-negtag="${escapeHtml(x.t)}" title="${escapeHtml(tip)}">
+        <span class="tg">${escapeHtml(x.t)}</span><span class="zh">${escapeHtml(x.zh || '')}</span>
+      </button>`;
+    }).join('');
+    html += `
+      <div class="cat ${open}">
+        <button class="cat-head" data-negcat="${cat.key}">
+          <span>${cat.label}</span>
+          <span class="cat-count">${list.length}/${cat.tags.length}</span>
+          <span class="cat-arrow">▶</span>
+        </button>
+        <div class="cat-body">${chips || '<span style="color:var(--text2);font-size:12px;padding:4px 0">无匹配负面词</span>'}</div>
+      </div>`;
+  }
+  wrap.innerHTML = html || '<div class="empty-tip">无负面词分类</div>';
+}
+
+/* ---------- 交互：负面词标签 ---------- */
+function toggleNegTag(text) {
+  const idx = state.negSelected.indexOf(text);
+  if (idx >= 0) {
+    state.negSelected.splice(idx, 1);
+  } else {
+    state.negSelected.push(text);
+  }
+  saveState();
+  renderNegCategories();
+  syncNegOutput();
+}
+
+/** 将已选负面词同步写入 #negOutput */
+function syncNegOutput() {
+  if (!state.negSelected.length) return; // 空时不覆盖用户手动输入
+  $('#negOutput').value = state.negSelected.join(', ');
+  saveNeg();
+}
+
 /* ---------- 渲染：收藏 / 历史 ---------- */
 function renderFavs() {
   const ul = $('#favList');
@@ -272,6 +328,11 @@ function randomGenerate() {
   else if (inten === 2 && Math.random() < 0.3) from('props', 1);
   // 审查：中/重强度 60% 默认「无码（步兵）」，想要骑兵手动加 censored 类标签
   if (inten >= 2 && Math.random() < 0.6) push('uncensored', 0);
+  // 攻受性：约 55% 概率带一个核心攻受标签
+  if (Math.random() < 0.55) {
+    const core = ['seme', 'uke', 'switch', 'dominant', 'submissive'];
+    push(core[rand(0, core.length - 1)], 0);
+  }
 
   state.selected[state.mode] = chips;
   pushHistory(chips);
@@ -379,9 +440,12 @@ function setPanel(panel) {
   state.panel = panel;
   $('#pbtnTags').classList.toggle('active', panel === 'tags');
   $('#pbtnChars').classList.toggle('active', panel === 'chars');
+  $('#pbtnNeg').classList.toggle('active', panel === 'neg');
   $('#tagPanel').classList.toggle('hidden', panel !== 'tags');
   $('#charPanel').classList.toggle('hidden', panel !== 'chars');
+  $('#negPanel').classList.toggle('hidden', panel !== 'neg');
   if (panel === 'chars') renderAnimeList();
+  if (panel === 'neg') renderNegCategories();
 }
 
 function renderAreas() {
@@ -534,6 +598,7 @@ function init() {
   // 角色库
   $('#pbtnTags').addEventListener('click', () => setPanel('tags'));
   $('#pbtnChars').addEventListener('click', () => setPanel('chars'));
+  $('#pbtnNeg').addEventListener('click', () => setPanel('neg'));
   $('#areaJp').addEventListener('click', () => { state.area = 'jp'; renderAreas(); renderAnimeList(); });
   $('#areaCn').addEventListener('click', () => { state.area = 'cn'; renderAreas(); renderAnimeList(); });
   $('#charSearch').addEventListener('input', (e) => { state.charSearch = e.target.value; renderAnimeList(); });
@@ -548,6 +613,23 @@ function init() {
     }
     const chip = e.target.closest('.char-chip');
     if (chip) toggleTag(chip.dataset.tag);
+  });
+
+  // 负面词面板
+  $('#negSearch').addEventListener('input', (e) => {
+    negSearchText = e.target.value;
+    renderNegCategories();
+  });
+  $('#negCategories').addEventListener('click', (e) => {
+    const head = e.target.closest('.cat-head');
+    if (head) {
+      const nkey = 'neg_' + head.dataset.negcat;
+      if (state.collapsed.has(nkey)) state.collapsed.delete(nkey); else state.collapsed.add(nkey);
+      renderNegCategories();
+      return;
+    }
+    const chip = e.target.closest('.tag-chip');
+    if (chip && chip.dataset.negtag) toggleNegTag(chip.dataset.negtag);
   });
 
   // 收藏 / 历史

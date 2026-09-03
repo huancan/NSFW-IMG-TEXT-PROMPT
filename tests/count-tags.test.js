@@ -21,6 +21,7 @@ const HAIR_STYLES = eval('(' + ex('HAIR_STYLES') + ')');
 const HAIR_COLORS = eval('(' + ex('HAIR_COLORS') + ')');
 const VIEW_TAGS = eval('(' + ex('VIEW_TAGS') + ')');
 const CENSOR_TAGS = eval('(' + ex('CENSOR_TAGS') + ')');
+const NATURE_TAGS = eval('(' + ex('NATURE_TAGS') + ')');
 const MODES = eval('(' + ex('MODES') + ')');
 const NEGATIVE_DEFAULT = eval('(' + ex('NEGATIVE_DEFAULT') + ')').join(', ');
 const MODEL_PRESETS = eval('(' + ex('MODEL_PRESETS') + ')');

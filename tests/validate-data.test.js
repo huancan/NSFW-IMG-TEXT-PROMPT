@@ -30,6 +30,7 @@ const HAIR_STYLES = eval('(' + extract('HAIR_STYLES') + ')');
 const HAIR_COLORS = eval('(' + extract('HAIR_COLORS') + ')');
 const VIEW_TAGS = eval('(' + extract('VIEW_TAGS') + ')');
 const CENSOR_TAGS = eval('(' + extract('CENSOR_TAGS') + ')');
+const NATURE_TAGS = eval('(' + extract('NATURE_TAGS') + ')');
 const NEGATIVE_DEFAULT = eval('(' + extract('NEGATIVE_DEFAULT') + ')').join(', ');
 const MODEL_PRESETS = eval('(' + extract('MODEL_PRESETS') + ')');
 const MODES = eval('(' + extract('MODES') + ')');
@@ -60,6 +61,8 @@ try {
   assert(CENSOR_TAGS.some(x => x.t === 'censored'), '含 censored（骑兵）');
   assert(CENSOR_TAGS.some(x => x.t === 'partial censoring'), '含局部打码');
   assert(CENSOR_TAGS.some(x => x.t === 'partially uncensored'), '含局部无码');
+  assert(checkTags(NATURE_TAGS, 'NATURE_TAGS'), '攻受性标签全部有注释/合法');
+  assert(NATURE_TAGS.some(x => x.t === 'seme') && NATURE_TAGS.some(x => x.t === 'uke'), '含 seme/uke（攻/受）');
 
   console.log('== 模型预设 ==');
   for (const [k, p] of Object.entries(MODEL_PRESETS)) {
@@ -77,6 +80,7 @@ try {
     assert(keys.includes('hair') && keys.includes('haircolor') && keys.includes('view') && keys.includes('quality'),
       `${k}: 含发型/发色/视角/质量词分类`);
     assert(keys.includes('censor'), `${k}: 含审查与码分类`);
+    assert(keys.includes('nature'), `${k}: 含攻受性分类`);
     // 逐预设注入专属标签后查重
     for (const [pk, p] of Object.entries(MODEL_PRESETS)) {
       const seen = new Set();

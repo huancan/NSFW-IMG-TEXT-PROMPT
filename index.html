@@ -73,6 +73,7 @@
     <div class="panel-switch">
       <button class="pbtn active" id="pbtnTags">🏷️ 标签库</button>
       <button class="pbtn" id="pbtnChars">🎌 角色库</button>
+      <button class="pbtn" id="pbtnNeg">🚫 负面词</button>
     </div>
 
     <!-- 标签库面板 -->
@@ -82,6 +83,15 @@
         <input type="text" id="tagSearch" class="search" placeholder="🔍 搜索标签… (如 blowjob / 温泉 / 肌肉)">
       </div>
       <div id="tagCategories" class="tag-cats"><!-- 动态渲染 --></div>
+    </div>
+
+    <!-- 负面词面板 -->
+    <div id="negPanel" class="hidden">
+      <div class="panel-head">
+        <h2>负面提示词</h2>
+        <input type="text" id="negSearch" class="search" placeholder="🔍 搜索负面词… (如 bad hands / watermark / blurry)">
+      </div>
+      <div id="negCategories" class="tag-cats"><!-- 动态渲染 --></div>
     </div>
 
     <!-- 角色库面板 -->
@@ -217,10 +227,9 @@
 </footer>
 
 <div id="whaleLayer" aria-hidden="true">
-  <span class="whale w1">🐳</span>
-  <span class="whale w2">🐋</span>
-  <span class="whale w3">🐳</span>
-  <span class="whale w4">🐋</span>
+  <div class="whale-girl">
+    <img src="whale-girl.jpg" alt="" draggable="false" />
+  </div>
   <span class="bubble b1">🫧</span>
   <span class="bubble b2">🫧</span>
   <span class="bubble b3">🫧</span>
@@ -230,6 +239,7 @@
 
 <script src="tags.js"></script>
 <script src="anime.js"></script>
+<script src="nptags.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

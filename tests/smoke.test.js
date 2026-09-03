@@ -45,7 +45,8 @@ function reg(id, tag) { const e = makeEl(tag); byId[id] = e; return e; }
  'templates', 'chipArea', 'posOutput', 'posCount', 'btnSaveFav', 'btnClearHist',
  'favList', 'histList', 'toast', 'modelSelect', 'modelDesc', 'paramsAdvice',
  'pbtnTags', 'pbtnChars', 'tagPanel', 'charPanel', 'areaJp', 'areaCn', 'charSearch',
- 'btnRandomChar', 'charList', 'charStats'].forEach(id => reg(id, id === 'posOutput' || id === 'negOutput' ? 'textarea' : 'div'));
+ 'btnRandomChar', 'charList', 'charStats', 'pbtnNeg', 'negPanel', 'negSearch',
+ 'negCategories'].forEach(id => reg(id, id === 'posOutput' || id === 'negOutput' ? 'textarea' : 'div'));
 const modeGay = makeEl('button'), modeLes = makeEl('button');
 modeGay.dataset.mode = 'gay'; modeLes.dataset.mode = 'lesbian';
 const tabFav = makeEl('button'); tabFav.dataset.tab = 'fav';
@@ -88,9 +89,11 @@ const ctx = vm.createContext({
 
 const srcTags = fs.readFileSync('tags.js', 'utf8');
 const srcAnime = fs.readFileSync('anime.js', 'utf8');
+const srcNpTags = fs.readFileSync('nptags.js', 'utf8');
 const src = fs.readFileSync('app.js', 'utf8');
 vm.runInContext(srcTags, ctx);
 vm.runInContext(srcAnime, ctx);
+vm.runInContext(srcNpTags, ctx);
 vm.runInContext(src, ctx);
 (docListeners['DOMContentLoaded'] || []).forEach(fn => fn());
 
@@ -108,6 +111,7 @@ try {
   assert(run('$("#tagCategories").innerHTML.includes("1boy")'), '标签库渲染出男同标签');
   assert(run('$("#templates").innerHTML.includes("温泉之夜")'), '模板渲染');
   assert(run('$("#tagCategories").innerHTML.includes("审查与码")'), '审查与码分类渲染');
+  assert(run('$("#tagCategories").innerHTML.includes("攻受性")'), '攻受性分类渲染');
   assert(!run('$("#tagCategories").innerHTML.includes("模型专属")'), '通用模型下「模型专属」分类隐藏');
   assert(run('$("#modelSelect").innerHTML.includes("Illustrious")'), '模型选择器选项已生成');
   assert(run('$("#modelDesc").textContent.length > 10'), '模型说明已显示');
@@ -129,6 +133,13 @@ try {
   run('toggleTag("censored")');
   assert(run('$("#posOutput").value.endsWith("censored")'), '骑兵标签为普通权重 1');
   run('toggleTag("uncensored"); toggleTag("censor bar over genitals"); toggleTag("censored")');
+
+  console.log('== 攻受性 ==');
+  run('toggleTag("seme")');
+  assert(run('$("#posOutput").value.includes("(seme:1.1)")'), '攻标签默认权重 1.1');
+  run('toggleTag("tomboy")');
+  assert(run('$("#posOutput").value.includes("tomboy")'), 'T 系标签可加入（女同向）');
+  run('toggleTag("seme"); toggleTag("tomboy")');
 
   console.log('== 标签增删与权重 ==');
   run('toggleTag("kissing")');
@@ -206,6 +217,8 @@ try {
   const outM = run('$("#posOutput").value');
   assert(outM.includes('score_9'), 'Illustrious 随机生成包含评分词 score_9');
   assert(outM.includes('uncensored'), '重强度随机生成默认带步兵 uncensored');
+  const natureHit = run('["seme","uke","switch","dominant","submissive"].some(w => state.selected.gay.some(c => c.t === w))');
+  assert(natureHit, '随机生成带攻受性标签（seed 0.5 → switch）');
   assert(run('state.hist.length') === 3, '历史记录 +3');
   const hasZh = run('state.selected.gay.every(c => typeof c.zh === "string")');
   assert(hasZh, '随机生成的每个标签都带中文注释');
@@ -247,6 +260,34 @@ try {
   console.log('== 持久化 ==');
   assert(run('localStorage.getItem("nps_selected") !== null'), '选中状态已写入 localStorage');
   assert(run('localStorage.getItem("nps_model")') === '"illustrious"', '模型选择已持久化');
+
+  console.log('== 负面词面板 ==');
+  run('setMode("gay", true)');
+  run('setPanel("neg")');
+  assert(run('state.panel') === 'neg', '面板切换到 neg');
+  assert(run('!$("#negPanel").classList.contains("hidden")'), '负面词面板显示');
+  assert(run('$("#tagPanel").classList.contains("hidden")'), '标签库面板隐藏');
+  run('renderNegCategories()');
+  assert(run('$("#negCategories").innerHTML.includes("bad anatomy")'), '负面词分类渲染：画质类');
+  assert(run('$("#negCategories").innerHTML.includes("bad cock")'), '男同模式出现男同性器官负面词');
+  assert(run('$("#negCategories").innerHTML.includes("禁止女性化")'), '男同模式出现禁止女性化分类');
+  assert(!run('$("#negCategories").innerHTML.includes("bad pussy")'), '男同模式不出现女性性器官负面词');
+  run('setMode("lesbian", true)');
+  run('renderNegCategories()');
+  assert(run('$("#negCategories").innerHTML.includes("bad pussy")'), '女同模式出现女性性器官负面词');
+  assert(run('$("#negCategories").innerHTML.includes("bad breasts")'), '女同模式出现胸部负面词');
+  assert(run('$("#negCategories").innerHTML.includes("禁止男性化")'), '女同模式出现禁止男性化分类');
+  assert(!run('$("#negCategories").innerHTML.includes("bad cock")'), '女同模式不出现男性性器官负面词');
+  assert(!run('$("#negCategories").innerHTML.includes("bad penis")'), '女同模式不出现男性性器官负面词');
+  run('toggleNegTag("bad pussy")');
+  assert(run('state.negSelected').includes('bad pussy'), '点击负面词加入 negSelected');
+  assert(run('$("#negOutput").value').includes('bad pussy'), 'negSelected 同步到 negOutput');
+  run('toggleNegTag("bad pussy")');
+  assert(!run('state.negSelected').includes('bad pussy'), '再次点击移除负面词');
+  run('setPanel("tags")');
+  assert(run('state.panel') === 'tags', '切回标签库面板');
+  assert(run('$("#tagPanel").classList.contains("hidden")') === false, '标签库面板恢复');
+  assert(run('$("#negPanel").classList.contains("hidden")'), '负面词面板已隐藏');
 
   console.log(`\n结果: ${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);
